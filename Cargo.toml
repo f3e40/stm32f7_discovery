@@ -28,7 +28,7 @@ default-features = false
 git = "https://github.com/embed-rs/embedded-rs.git"
 
 [dependencies.embedded_stm32f7]
-git = "https://github.com/embed-rs/embedded_stm32f7.git"
+git = "https://github.com/f3e40/embedded_stm32f7.git"
 
 [profile]
 
