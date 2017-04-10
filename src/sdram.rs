@@ -88,7 +88,8 @@ fn config_pins(gpio: &mut Gpio) {
 
     let sdclk = (PortG, Pin8);
     let sdcke0 = (PortC, Pin3);
-    let sdcke1 = (PortB, Pin5);
+    //let sdcke1 = (PortB, Pin5);
+    let sdcke1 = (PortH, Pin7);
     let sdne0 = (PortH, Pin3);
     let sdne1 = (PortH, Pin6);
     let a0 = (PortF, Pin0);

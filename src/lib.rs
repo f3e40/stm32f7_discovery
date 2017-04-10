@@ -3,6 +3,7 @@
 #![feature(trusted_len)]
 #![feature(asm)]
 #![feature(alloc, collections)]
+#![feature(drop_types_in_const)]
 #![feature(try_from)]
 
 #![no_std]
