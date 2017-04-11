@@ -1,13 +1,12 @@
 //! Interrupts
 
-#![feature(alloc)]
 extern crate alloc;
 
 #[no_mangle]
-pub static INTERRUPTS: [Option<unsafe extern "C" fn()>; 97] = [Some(handle_interrupt); 97];
+pub static INTERRUPTS: [unsafe extern "C" fn(); 97] = [handle_interrupt; 97];
 
-pub static mut HANDLE_INT: Option<alloc::boxed::Box<FnMut() -> ()>> = None;
 pub static mut INTS : [bool; 97] = [false; 97];
+static mut ISRS: [Option<unsafe fn(u8)>; 97] = [None; 97];
 
 
 unsafe extern "C" fn handle_interrupt () {
@@ -21,17 +20,18 @@ unsafe extern "C" fn handle_interrupt () {
 		INTS[i] |= irqi_triggered;
 		irqs[i] = irqi_triggered;
 	}
-
-	// USB Interrupt (handle externally)
-	if irqs[74..78].iter().any(|b| *b) {
-		if let Some(ref mut f) = HANDLE_INT {
-			f() 
-		}	
+	
+	for (irq, _) in irqs.iter().enumerate().filter(|&(_, &b)| b) {
+		match ISRS[irq] {
+			Some(ref mut f) => f(irq as u8),
+			None => ()
+		}
 	}
 }
 
 extern crate embedded_stm32f7;
-pub fn enable_interrupt(irq: u8, nvic: &mut embedded_stm32f7::nvic::Nvic) {
+use self::embedded_stm32f7::nvic::Nvic;
+pub fn enable_interrupt(irq: u8, prio: u8, isr: Option<unsafe fn(u8)>, nvic: &mut Nvic) {
 	let iser_no = irq / 32u8;
 	let mask = 1 << (irq % 32u8);
 	match iser_no {
@@ -41,5 +41,9 @@ pub fn enable_interrupt(irq: u8, nvic: &mut embedded_stm32f7::nvic::Nvic) {
 		_ => ()
 	}
 	// TODO
-	nvic.ipr19.update(|r| r.set_ipr_n1(1)); // set priority of irq77
+	if irq == 77 {
+		nvic.ipr19.update(|r| r.set_ipr_n1(prio)); // set priority of irq77
+	}
+
+	unsafe { ISRS[irq as usize] = isr; }
 }
